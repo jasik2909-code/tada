@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -6,7 +7,6 @@
   <title>TA-DA! Лотерея</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
-
     body {
       margin: 0;
       font-family: 'Montserrat', 'Geometria', sans-serif;
@@ -137,21 +137,19 @@
 
     drawWheel();
 
-    let currentRotation = 0;
-
     function spin() {
       const segmentAngle = 360 / prizes.length;
       const randomIndex = Math.floor(Math.random() * prizes.length);
-      const targetAngle = (360 - (randomIndex * segmentAngle + segmentAngle / 2) + 270) % 360;
-      const rotationAmount = 360 * 3 + targetAngle;
-      currentRotation += rotationAmount;
+      const targetAngle = (360 - (randomIndex * segmentAngle + segmentAngle / 2)) % 360;
+      const rotationAmount = 360 * 5 + targetAngle;
 
       const wheelElement = document.getElementById('wheel');
       wheelElement.style.transition = 'transform 2s ease-out';
-      wheelElement.style.transform = `rotate(${currentRotation}deg)`;
+      wheelElement.style.transform = `rotate(${rotationAmount}deg)`;
 
       setTimeout(() => {
         document.getElementById('result').innerText = `🎉 Виграш: ${prizes[randomIndex].replace("\n", " ")}!`;
+        drawWheel();
       }, 2000);
     }
   </script>

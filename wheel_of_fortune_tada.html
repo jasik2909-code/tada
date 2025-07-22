@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TA-DA! Лотерея</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', 'Geometria', sans-serif;
+      background: #ffcb05;
+      color: #000;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      min-height: 100vh;
+      padding-top: 2rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #ff5500;
+      text-shadow: 1px 1px 1px #000;
+      margin-bottom: 1rem;
+    }
+    #wheel-container {
+      position: relative;
+      margin-top: 1rem;
+    }
+    #arrow {
+      width: 0;
+      height: 0;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-bottom: 40px solid yellow;
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 10px solid #000;
+      position: relative;
+      transition: transform 2s ease-out;
+    }
+    canvas {
+      border-radius: 50%;
+    }
+    button {
+      margin-top: 2rem;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      background: #ff5500;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
+    #result {
+      margin-top: 2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      max-width: 80%;
+    }
+    @media screen and (max-width: 500px) {
+      h1 { font-size: 1.5rem; }
+      button { font-size: 1rem; padding: 0.8rem 1.5rem; }
+      #wheel { width: 250px; height: 250px; }
+      #arrow { top: -20px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Твоя щаслива лотерея</h1>
+  <div id="wheel-container">
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <div id="arrow"></div>
+  </div>
+  <button onclick="spin()">КРУТИТИ!</button>
+  <div id="result"></div>
+
+  <script>
+    const prizes = [
+      'Губки для миття\nпосуду TA-DA!',
+      'Засіб для миття\nпосуду TA-DA!',
+      'Омивач скла\nTA-DA!',
+      'Розпалвач вогню\nTA-DA!',
+      'Рукавички робочі\nуніверсальні TA-DA!',
+      'Сумка Еко\nTA-DA!',
+      'Папір туалетний\nTA-DA!',
+      'Серветки паперові\nGooddi',
+      'Мило рідке\nTA-DA!',
+      'Вологі серветки\nTA-DA! 15 шт.'
+    ];
+
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const wheelRadius = canvas.width / 2;
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const segmentAngle = 2 * Math.PI / prizes.length;
+      for (let i = 0; i < prizes.length; i++) {
+        const startAngle = i * segmentAngle;
+        const endAngle = startAngle + segmentAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(wheelRadius, wheelRadius);
+        ctx.arc(wheelRadius, wheelRadius, wheelRadius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#000000';
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(wheelRadius, wheelRadius);
+        ctx.rotate(startAngle + segmentAngle / 2);
+        ctx.fillStyle = i % 2 === 0 ? '#000000' : '#ffffff';
+        ctx.font = 'bold 10px Montserrat';
+        ctx.textAlign = 'right';
+
+        const lines = prizes[i].split('\n');
+        for (let j = 0; j < lines.length; j++) {
+          ctx.fillText(lines[j], wheelRadius - 10, -5 + j * 12);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    drawWheel();
+
+    let currentRotation = 0;
+
+    function spin() {
+      const segmentAngle = 360 / prizes.length;
+      const randomIndex = Math.floor(Math.random() * prizes.length);
+      const targetAngle = (360 - (randomIndex * segmentAngle + segmentAngle / 2) + 270) % 360;
+      const rotationAmount = 360 * 3 + targetAngle;
+      currentRotation += rotationAmount;
+
+      const wheelElement = document.getElementById('wheel');
+      wheelElement.style.transition = 'transform 2s ease-out';
+      wheelElement.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        document.getElementById('result').innerText = `🎉 Виграш: ${prizes[randomIndex].replace("\n", " ")}!`;
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

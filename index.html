@@ -141,7 +141,7 @@
       const segmentAngle = 360 / prizes.length;
       const randomIndex = Math.floor(Math.random() * prizes.length);
       const targetAngle = (360 - (randomIndex * segmentAngle + segmentAngle / 2)) % 360;
-      const rotationAmount = 360 * 5 + targetAngle;
+      const rotationAmount = 360 * 10 + targetAngle;
 
       const wheelElement = document.getElementById('wheel');
       wheelElement.style.transition = 'transform 2s ease-out';

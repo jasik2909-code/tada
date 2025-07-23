@@ -9,14 +9,14 @@
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
     body {
       margin: 0;
-      font-family: 'Montserrat', 'Geometria', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       background: #ffcb05;
       color: #000;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: start;
+      justify-content: flex-start;
       min-height: 100vh;
       padding-top: 2rem;
     }
@@ -26,9 +26,16 @@
       text-shadow: 1px 1px 1px #000;
       margin-bottom: 1rem;
     }
-    #wheel-container {
+    #wheel-wrapper {
       position: relative;
-      margin-top: 1rem;
+      width: 300px;
+      height: 300px;
+    }
+    #wheel-container {
+      width: 100%;
+      height: 100%;
+      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+      transform: rotate(0deg);
     }
     #arrow {
       width: 0;
@@ -42,16 +49,11 @@
       transform: translateX(-50%);
       z-index: 10;
     }
-    #wheel {
-      width: 300px;
-      height: 300px;
+    canvas {
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
       border: 10px solid #000;
-      position: relative;
-      transition: transform 2s ease-out;
-    }
-    canvas {
-      border-radius: 50%;
     }
     button {
       margin-top: 2rem;
@@ -70,22 +72,37 @@
       font-weight: bold;
       max-width: 80%;
     }
-    @media screen and (max-width: 500px) {
-      h1 { font-size: 1.5rem; }
-      button { font-size: 1rem; padding: 0.8rem 1.5rem; }
-      #wheel { width: 250px; height: 250px; }
-      #arrow { top: -20px; }
+    table {
+      margin-top: 2rem;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 6px 10px;
+    }
+    th {
+      background-color: #ff5500;
+      color: #fff;
     }
   </style>
 </head>
 <body>
   <h1>Твоя щаслива лотерея</h1>
-  <div id="wheel-container">
-    <canvas id="wheel" width="300" height="300"></canvas>
+  <div id="wheel-wrapper">
     <div id="arrow"></div>
+    <div id="wheel-container">
+      <canvas id="wheel" width="300" height="300"></canvas>
+    </div>
   </div>
   <button onclick="spin()">КРУТИТИ!</button>
   <div id="result"></div>
+  <table id="stock-table">
+    <thead>
+      <tr><th>Приз</th><th>Залишилось</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
     const prizes = [
@@ -101,16 +118,18 @@
       'Вологі серветки\nTA-DA! 15 шт.'
     ];
 
+    const stock = Array(prizes.length).fill(10);
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const wheelRadius = canvas.width / 2;
+    const segmentAngle = 360 / prizes.length;
 
     function drawWheel() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const segmentAngle = 2 * Math.PI / prizes.length;
+      const angleRad = 2 * Math.PI / prizes.length;
       for (let i = 0; i < prizes.length; i++) {
-        const startAngle = i * segmentAngle;
-        const endAngle = startAngle + segmentAngle;
+        const startAngle = i * angleRad;
+        const endAngle = startAngle + angleRad;
 
         ctx.beginPath();
         ctx.moveTo(wheelRadius, wheelRadius);
@@ -121,7 +140,7 @@
 
         ctx.save();
         ctx.translate(wheelRadius, wheelRadius);
-        ctx.rotate(startAngle + segmentAngle / 2);
+        ctx.rotate(startAngle + angleRad / 2);
         ctx.fillStyle = i % 2 === 0 ? '#000000' : '#ffffff';
         ctx.font = 'bold 10px Montserrat';
         ctx.textAlign = 'right';
@@ -135,22 +154,46 @@
       }
     }
 
+    function updateStockTable() {
+      const tbody = document.querySelector("#stock-table tbody");
+      tbody.innerHTML = "";
+      prizes.forEach((prize, i) => {
+        const row = document.createElement("tr");
+        const nameCell = document.createElement("td");
+        nameCell.textContent = prize.replace("\n", " ");
+        const stockCell = document.createElement("td");
+        stockCell.textContent = stock[i];
+        row.appendChild(nameCell);
+        row.appendChild(stockCell);
+        tbody.appendChild(row);
+      });
+    }
+
     drawWheel();
+    updateStockTable();
+
+    let currentRotation = 0;
 
     function spin() {
-      const segmentAngle = 360 / prizes.length;
-      const randomIndex = Math.floor(Math.random() * prizes.length);
-      const targetAngle = (360 - (randomIndex * segmentAngle + segmentAngle / 2)) % 360;
-      const rotationAmount = 360 * 10 + targetAngle;
+      const available = stock.map((s, i) => s > 0 ? i : null).filter(i => i !== null);
+      if (available.length === 0) {
+        document.getElementById('result').innerText = "🎉 Всі подарунки розіграно!";
+        return;
+      }
 
-      const wheelElement = document.getElementById('wheel');
-      wheelElement.style.transition = 'transform 2s ease-out';
-      wheelElement.style.transform = `rotate(${rotationAmount}deg)`;
+      const wheelContainer = document.getElementById('wheel-container');
+      const randomIndex = available[Math.floor(Math.random() * available.length)];
+      const targetAngle = 360 - (randomIndex * segmentAngle + segmentAngle / 2);
+      const spinAmount = 360 * 10 + targetAngle;
+      currentRotation += spinAmount;
+      wheelContainer.style.transform = `rotate(${currentRotation}deg)`;
 
       setTimeout(() => {
-        document.getElementById('result').innerText = `🎉 Виграш: ${prizes[randomIndex].replace("\n", " ")}!`;
-        drawWheel();
-      }, 2000);
+        stock[randomIndex]--;
+        const resultText = prizes[randomIndex].replace("\n", " ");
+        document.getElementById('result').innerText = `🎉 Виграш: ${resultText}!`;
+        updateStockTable();
+      }, 4000);
     }
   </script>
 </body>

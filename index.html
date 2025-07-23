@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -106,19 +105,20 @@
 
   <script>
     const prizes = [
-      'Губки для миття\nпосуду TA-DA!',
-      'Засіб для миття\nпосуду TA-DA!',
-      'Омивач скла\nTA-DA!',
-      'Розпалвач вогню\nTA-DA!',
-      'Рукавички робочі\nуніверсальні TA-DA!',
-      'Сумка Еко\nTA-DA!',
-      'Папір туалетний\nTA-DA!',
-      'Серветки паперові\nGooddi',
-      'Мило рідке\nTA-DA!',
-      'Вологі серветки\nTA-DA! 15 шт.'
+      'Губки для миття\\nпосуду TA-DA!',
+      'Засіб для миття\\nпосуду TA-DA!',
+      'Омивач скла\\nTA-DA!',
+      'Розпалвач вогню\\nTA-DA!',
+      'Рукавички робочі\\nуніверсальні TA-DA!',
+      'Сумка Еко\\nTA-DA!',
+      'Папір туалетний\\nTA-DA!',
+      'Серветки паперові\\nGooddi',
+      'Мило рідке\\nTA-DA!',
+      'Вологі серветки\\nTA-DA! 15 шт.'
     ];
 
-    const stock = Array(prizes.length).fill(10);
+    let stock = JSON.parse(localStorage.getItem("stock")) || Array(prizes.length).fill(10);
+
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const wheelRadius = canvas.width / 2;
@@ -145,7 +145,7 @@
         ctx.font = 'bold 10px Montserrat';
         ctx.textAlign = 'right';
 
-        const lines = prizes[i].split('\n');
+        const lines = prizes[i].split('\\n');
         for (let j = 0; j < lines.length; j++) {
           ctx.fillText(lines[j], wheelRadius - 10, -5 + j * 12);
         }
@@ -160,7 +160,7 @@
       prizes.forEach((prize, i) => {
         const row = document.createElement("tr");
         const nameCell = document.createElement("td");
-        nameCell.textContent = prize.replace("\n", " ");
+        nameCell.textContent = prize.replace("\\n", " ");
         const stockCell = document.createElement("td");
         stockCell.textContent = stock[i];
         row.appendChild(nameCell);
@@ -190,7 +190,8 @@
 
       setTimeout(() => {
         stock[randomIndex]--;
-        const resultText = prizes[randomIndex].replace("\n", " ");
+        localStorage.setItem("stock", JSON.stringify(stock));
+        const resultText = prizes[randomIndex].replace("\\n", " ");
         document.getElementById('result').innerText = `🎉 Виграш: ${resultText}!`;
         updateStockTable();
       }, 4000);

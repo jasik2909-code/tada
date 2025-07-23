@@ -30,12 +30,6 @@
       width: 300px;
       height: 300px;
     }
-    #wheel-container {
-      width: 100%;
-      height: 100%;
-      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
-      transform: rotate(0deg);
-    }
     #arrow {
       width: 0;
       height: 0;
@@ -47,6 +41,12 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
+    }
+    #wheel-container {
+      width: 100%;
+      height: 100%;
+      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+      transform: rotate(0deg);
     }
     canvas {
       width: 100%;
@@ -183,10 +183,13 @@
 
       const wheelContainer = document.getElementById('wheel-container');
       const randomIndex = available[Math.floor(Math.random() * available.length)];
-      const targetAngle = 360 - (randomIndex * segmentAngle + segmentAngle / 2);
-      const spinAmount = 360 * 10 + targetAngle;
-      currentRotation += spinAmount;
-      wheelContainer.style.transform = `rotate(${currentRotation}deg)`;
+
+      const targetAngle = randomIndex * segmentAngle;
+      const fullSpins = 360 * 10;
+      const rotation = fullSpins + targetAngle;
+
+      currentRotation += rotation;
+      wheelContainer.style.transform = `rotate(-${currentRotation}deg)`; // мінус — щоб стрілка на 12 годині
 
       setTimeout(() => {
         stock[randomIndex]--;

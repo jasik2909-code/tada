@@ -55,7 +55,7 @@
       border: 10px solid #000;
     }
     button {
-      margin-top: 2rem;
+      margin-top: 1rem;
       padding: 1rem 2rem;
       font-size: 1.2rem;
       background: #ff5500;
@@ -64,6 +64,10 @@
       border-radius: 8px;
       cursor: pointer;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
+    #reset {
+      background: #444;
+      margin-top: 1rem;
     }
     #result {
       margin-top: 2rem;
@@ -95,6 +99,7 @@
     </div>
   </div>
   <button onclick="spin()">КРУТИТИ!</button>
+  <button id="reset" onclick="resetStock()">Скинути залишки</button>
   <div id="result"></div>
   <table id="stock-table">
     <thead>
@@ -105,16 +110,16 @@
 
   <script>
     const prizes = [
-      'Губки для миття\\nпосуду TA-DA!',
-      'Засіб для миття\\nпосуду TA-DA!',
-      'Омивач скла\\nTA-DA!',
-      'Розпалвач вогню\\nTA-DA!',
-      'Рукавички робочі\\nуніверсальні TA-DA!',
-      'Сумка Еко\\nTA-DA!',
-      'Папір туалетний\\nTA-DA!',
-      'Серветки паперові\\nGooddi',
-      'Мило рідке\\nTA-DA!',
-      'Вологі серветки\\nTA-DA! 15 шт.'
+      'Губки для миття\nпосуду TA-DA!',
+      'Засіб для миття\nпосуду TA-DA!',
+      'Омивач скла\nTA-DA!',
+      'Розпалвач вогню\nTA-DA!',
+      'Рукавички робочі\nуніверсальні TA-DA!',
+      'Сумка Еко\nTA-DA!',
+      'Папір туалетний\nTA-DA!',
+      'Серветки паперові\nGooddi',
+      'Мило рідке\nTA-DA!',
+      'Вологі серветки\nTA-DA! 15 шт.'
     ];
 
     let stock = JSON.parse(localStorage.getItem("stock")) || Array(prizes.length).fill(10);
@@ -124,7 +129,7 @@
     const wheelRadius = canvas.width / 2;
     const segmentAngle = 360 / prizes.length;
 
-    function drawWheel() {
+    function drawWheel(highlightIndex = null) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const angleRad = 2 * Math.PI / prizes.length;
       for (let i = 0; i < prizes.length; i++) {
@@ -135,7 +140,7 @@
         ctx.moveTo(wheelRadius, wheelRadius);
         ctx.arc(wheelRadius, wheelRadius, wheelRadius, startAngle, endAngle);
         ctx.closePath();
-        ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#000000';
+        ctx.fillStyle = (i === highlightIndex) ? '#00ff00' : (i % 2 === 0 ? '#ffffff' : '#000000');
         ctx.fill();
 
         ctx.save();
@@ -145,11 +150,10 @@
         ctx.font = 'bold 10px Montserrat';
         ctx.textAlign = 'right';
 
-        const lines = prizes[i].split('\\n');
+        const lines = prizes[i].split('\n');
         for (let j = 0; j < lines.length; j++) {
           ctx.fillText(lines[j], wheelRadius - 10, -5 + j * 12);
         }
-
         ctx.restore();
       }
     }
@@ -160,7 +164,7 @@
       prizes.forEach((prize, i) => {
         const row = document.createElement("tr");
         const nameCell = document.createElement("td");
-        nameCell.textContent = prize.replace("\\n", " ");
+        nameCell.textContent = prize.replace("\n", " ");
         const stockCell = document.createElement("td");
         stockCell.textContent = stock[i];
         row.appendChild(nameCell);
@@ -184,20 +188,28 @@
       const wheelContainer = document.getElementById('wheel-container');
       const randomIndex = available[Math.floor(Math.random() * available.length)];
 
-      const targetAngle = randomIndex * segmentAngle;
-      const fullSpins = 360 * 10;
-      const rotation = fullSpins + targetAngle;
+      const angleToCenter = segmentAngle * randomIndex + segmentAngle / 2;
+      const rotation = 360 * 10 + angleToCenter;
 
       currentRotation += rotation;
-      wheelContainer.style.transform = `rotate(-${currentRotation}deg)`; // мінус — щоб стрілка на 12 годині
+      wheelContainer.style.transform = `rotate(-${currentRotation}deg)`;
 
       setTimeout(() => {
         stock[randomIndex]--;
         localStorage.setItem("stock", JSON.stringify(stock));
-        const resultText = prizes[randomIndex].replace("\\n", " ");
+        const resultText = prizes[randomIndex].replace("\n", " ");
         document.getElementById('result').innerText = `🎉 Виграш: ${resultText}!`;
+        drawWheel(randomIndex);
         updateStockTable();
       }, 4000);
+    }
+
+    function resetStock() {
+      stock = Array(prizes.length).fill(10);
+      localStorage.setItem("stock", JSON.stringify(stock));
+      drawWheel();
+      updateStockTable();
+      document.getElementById('result').innerText = "Залишки скинуто.";
     }
   </script>
 </body>

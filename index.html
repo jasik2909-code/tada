@@ -30,23 +30,9 @@
       width: 300px;
       height: 300px;
     }
-    #arrow {
-      width: 0;
-      height: 0;
-      border-left: 25px solid transparent;
-      border-right: 25px solid transparent;
-      border-bottom: 40px solid yellow;
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-    }
     #wheel-container {
       width: 100%;
       height: 100%;
-      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
-      transform: rotate(0deg);
     }
     canvas {
       width: 100%;
@@ -93,7 +79,6 @@
 <body>
   <h1>Твоя щаслива лотерея</h1>
   <div id="wheel-wrapper">
-    <div id="arrow"></div>
     <div id="wheel-container">
       <canvas id="wheel" width="300" height="300"></canvas>
     </div>
@@ -127,14 +112,13 @@
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const wheelRadius = canvas.width / 2;
-    const segmentAngle = 360 / prizes.length;
+    const segmentAngle = 2 * Math.PI / prizes.length;
 
     function drawWheel(highlightIndex = null) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const angleRad = 2 * Math.PI / prizes.length;
       for (let i = 0; i < prizes.length; i++) {
-        const startAngle = i * angleRad;
-        const endAngle = startAngle + angleRad;
+        const startAngle = i * segmentAngle;
+        const endAngle = startAngle + segmentAngle;
 
         ctx.beginPath();
         ctx.moveTo(wheelRadius, wheelRadius);
@@ -145,7 +129,7 @@
 
         ctx.save();
         ctx.translate(wheelRadius, wheelRadius);
-        ctx.rotate(startAngle + angleRad / 2);
+        ctx.rotate(startAngle + segmentAngle / 2);
         ctx.fillStyle = i % 2 === 0 ? '#000000' : '#ffffff';
         ctx.font = 'bold 10px Montserrat';
         ctx.textAlign = 'right';
@@ -176,8 +160,6 @@
     drawWheel();
     updateStockTable();
 
-    let currentRotation = 0;
-
     function spin() {
       const available = stock.map((s, i) => s > 0 ? i : null).filter(i => i !== null);
       if (available.length === 0) {
@@ -185,23 +167,26 @@
         return;
       }
 
-      const wheelContainer = document.getElementById('wheel-container');
-      const randomIndex = available[Math.floor(Math.random() * available.length)];
+      const winningIndex = available[Math.floor(Math.random() * available.length)];
+      let currentIndex = 0;
+      let steps = Math.floor(30 + Math.random() * 20); // загальна кількість "кроків"
+      const stepDuration = 60; // мілісекунд на крок
 
-      const angleToCenter = segmentAngle * randomIndex + segmentAngle / 2;
-      const rotation = 360 * 10 + angleToCenter;
+      const interval = setInterval(() => {
+        drawWheel(currentIndex % prizes.length);
+        currentIndex++;
+        steps--;
 
-      currentRotation += rotation;
-      wheelContainer.style.transform = `rotate(-${currentRotation}deg)`;
-
-      setTimeout(() => {
-        stock[randomIndex]--;
-        localStorage.setItem("stock", JSON.stringify(stock));
-        const resultText = prizes[randomIndex].replace("\n", " ");
-        document.getElementById('result').innerText = `🎉 Виграш: ${resultText}!`;
-        drawWheel(randomIndex);
-        updateStockTable();
-      }, 4000);
+        if (steps <= 0) {
+          clearInterval(interval);
+          drawWheel(winningIndex);
+          stock[winningIndex]--;
+          localStorage.setItem("stock", JSON.stringify(stock));
+          const resultText = prizes[winningIndex].replace("\n", " ");
+          document.getElementById('result').innerText = `🎉 Виграш: ${resultText}!`;
+          updateStockTable();
+        }
+      }, stepDuration);
     }
 
     function resetStock() {
